@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #ifndef TUNIT_H
 #define TUNIT_H 42
-void t_initTestSuite(char *name);
+void t_beginTestSuite(char *name);
 void t_addTestToSuite(char *name, void (*test_fn)(void *));
 int t_runSuites(int argc, char **argv);
 #define C_NORM "\033[0m"
@@ -47,7 +47,7 @@ int succeeded;
 int tunit_error;
 int tunit_total_errors = 0;
 char * tunit_error_string;
-void t_initTestSuite(char *name) {
+void t_beginTestSuite(char *name) {
   testsuite_t *new_suite = (testsuite_t *)malloc(sizeof(testsuite_t));
   new_suite->name = name;
   new_suite->first = NULL;

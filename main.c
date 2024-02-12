@@ -1,5 +1,6 @@
 #define TUNIT_IMPLEMENTATION
 #include "tunit.h"
+#include <unistd.h>
 
 void greatTest()
 {
@@ -28,15 +29,15 @@ void test5()
 
 int main(int argc, char** argv)
 {
-    t_initTestSuite("sums");
+    t_beginTestSuite("sums");
     t_addTestToSuite("basic-sum", test4);
     t_addTestToSuite("basic-sum-reversed", test5);
 
-    t_initTestSuite("dumb");
+    t_beginTestSuite("dumb");
     t_addTestToSuite("great", greatTest);
     t_addTestToSuite("test3", test3);
 
-    t_initTestSuite("empty");
+    t_beginTestSuite("empty");
 
     return t_runSuites(argc, argv);
 }
