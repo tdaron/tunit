@@ -32,6 +32,7 @@ struct Test {
   test_t *next;
   char *name;
   void (*test_fn)(void *);
+  //TODO: Support start_up and clean_up functions.
   void *(*start_up)();
   void (*clean_up)();
   void *static_data;
