@@ -100,6 +100,7 @@ int t_runSuites(int argc, char **argv) {
 }
 
 void t_addTestToSuite(char *name, void (*test_fn)(void *)) {
+  //TODO: Find a better way to do this lul
   tunit_error_string = malloc(1000);
   test_t *t = (test_t *)malloc(sizeof(test_t));
   t->test_fn = test_fn;
