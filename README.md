@@ -3,6 +3,12 @@
 ![hey](https://github.com/Kaporos/tunit/assets/34960023/e7096d7d-b830-495d-899a-bbeb4c0639b2)
 
 
+## Features
+
+- Basic assert between numbers
+- Tests suites
+- Pass values to tests
+
 
 ## Usage
 
