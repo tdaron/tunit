@@ -8,6 +8,8 @@ testsuite_t *t_registerTestSuite(char *name);
 test_t *t_addTestToSuite(testsuite_t *suite, char *name,
                          void (*test_fn)(void *));
 void t_addStaticDataToTest(test_t *test, void *data);
+void t_addStartUpToTest(test_t *test, void (*d)(void*));
+void t_addCleanUpToTest(test_t *test, void (*d)(void*));
 int t_runSuites(int argc, char **argv);
 #define C_NORM "\033[0m"
 #define C_RED "\033[0;31m"
@@ -26,15 +28,15 @@ int t_runSuites(int argc, char **argv);
   }
 
 #endif
+#define TUNIT_IMPLEMENTATION
 #ifdef TUNIT_IMPLEMENTATION
 typedef struct Test test_t; // forward declaration
 struct Test {
   test_t *next;
   char *name;
   void (*test_fn)(void *);
-  //TODO: Support start_up and clean_up functions.
-  void *(*start_up)();
-  void (*clean_up)();
+  void (*start_up)(void *);
+  void (*clean_up)(void*);
   void *static_data;
 };
 
@@ -71,11 +73,11 @@ void pv_t_runSuite(testsuite_t *t) {
     test_t *test = t->first;
     void *input = test->static_data;
     if (test->start_up != NULL) {
-      input = test->start_up();
+      test->start_up(input);
     }
     test->test_fn(input);
     if (test->clean_up != NULL) {
-      test->clean_up();
+      test->clean_up(input);
     }
     if (tunit_error == 0) {
       succeeded++;
@@ -136,6 +138,12 @@ test_t *t_addTestToSuite(testsuite_t *suite, char *name,
   suite->length++;
   free(tunit_error_string);
   return t;
+}
+void t_addStartUpToTest(test_t *test, void (*startup)(void*)){
+  test->start_up = startup;
+}
+void t_addCleanUpToTest(test_t *test, void (*cleanup)(void*)) {
+  test->clean_up = cleanup;
 }
 
 #endif
