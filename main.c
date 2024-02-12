@@ -1,6 +1,5 @@
 #define TUNIT_IMPLEMENTATION
 #include "tunit.h"
-#include <unistd.h>
 
 void greatTest()
 {
