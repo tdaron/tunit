@@ -26,10 +26,15 @@ void test5()
 {
     t_assert_int(4, ==, sum(1, 3));
 }
+
+typedef struct Person {
+    int age;
+} person_t;
+
 void test6(void* input)
 {
-    int i = input;
-    t_assert_int(i, ==, sum(6, 12));
+    person_t* i = input;
+    t_assert_int(i->age, ==, sum(6, 12));
 }
 
 int main(int argc, char** argv)
@@ -39,11 +44,17 @@ int main(int argc, char** argv)
     t_addTestToSuite(sums, "basic-sum-reversed", test5);
 
     testsuite_t* dumb = t_registerTestSuite("dumb");
-    t_addTestToSuite(dumb, "great", greatTest);
+    t_addTestToSuite(dumb, "great (should fail)", greatTest);
     t_addTestToSuite(dumb, "test3", test3);
 
-    test_t* test6_t = t_addTestToSuite(dumb, "static data", test6);
-    t_addStaticDataToTest(test6_t, (void*)18);
+    testsuite_t* people = t_registerTestSuite("people");
+    person_t theo = { .age = 69 };
+    test_t* test6_t = t_addTestToSuite(people, "person age (should fail)", test6);
+    t_addStaticDataToTest(test6_t, (void*)&theo);
+
+    person_t vlad = { .age = 18 };
+    test_t* test6_t_bis = t_addTestToSuite(people, "person age", test6);
+    t_addStaticDataToTest(test6_t_bis, (void*)&vlad);
 
     t_registerTestSuite("empty");
 
