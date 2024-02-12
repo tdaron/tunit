@@ -10,6 +10,8 @@ void greatTest()
 void test3()
 {
     t_assert_int(2, ==, 2);
+    t_assert_false(3 == 4);
+    t_assert_true(4 == 4);
 }
 
 int sum(int a, int b)

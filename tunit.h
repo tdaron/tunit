@@ -32,7 +32,8 @@ int t_runSuites(int argc, char **argv);
       t_errf(a, op, b);                                                        \
     }                                                                          \
   }
-
+#define t_assert_false(a) t_assert_int(a, ==, 0)
+#define t_assert_true(a) t_assert_int(a, ==, 1)
 #endif
 #define TUNIT_IMPLEMENTATION
 #ifdef TUNIT_IMPLEMENTATION
