@@ -26,6 +26,11 @@ void test5()
 {
     t_assert_int(4, ==, sum(1, 3));
 }
+void test6(void* input)
+{
+    int i = input;
+    t_assert_int(i, ==, sum(6, 12));
+}
 
 int main(int argc, char** argv)
 {
@@ -36,6 +41,9 @@ int main(int argc, char** argv)
     testsuite_t* dumb = t_registerTestSuite("dumb");
     t_addTestToSuite(dumb, "great", greatTest);
     t_addTestToSuite(dumb, "test3", test3);
+
+    test_t* test6_t = t_addTestToSuite(dumb, "static data", test6);
+    t_addStaticDataToTest(test6_t, (void*)18);
 
     t_registerTestSuite("empty");
 

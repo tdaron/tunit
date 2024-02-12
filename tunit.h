@@ -3,8 +3,11 @@
 #ifndef TUNIT_H
 #define TUNIT_H 42
 typedef struct TestSuite testsuite_t;
-testsuite_t* t_registerTestSuite(char *name);
-void t_addTestToSuite(testsuite_t * suite,char *name, void (*test_fn)(void *));
+typedef struct Test test_t;
+testsuite_t *t_registerTestSuite(char *name);
+test_t *t_addTestToSuite(testsuite_t *suite, char *name,
+                         void (*test_fn)(void *));
+void t_addStaticDataToTest(test_t *test, void *data);
 int t_runSuites(int argc, char **argv);
 #define C_NORM "\033[0m"
 #define C_RED "\033[0;31m"
@@ -17,8 +20,9 @@ int t_runSuites(int argc, char **argv);
 #define t_assert_int(a, op, b)                                                 \
   if (!((a)op(b))) {                                                           \
     tunit_error = 1;                                                           \
-    sprintf(tunit_error_string,C_RED "ERROR> %s:%d - assertion failed %d %s %d\n" C_NORM,          \
-           __FILE__, __LINE__, a, #op, b);                                     \
+    sprintf(tunit_error_string,                                                \
+            C_RED "ERROR> %s:%d - assertion failed %d %s %d\n" C_NORM,         \
+            __FILE__, __LINE__, a, #op, b);                                    \
   }
 
 #endif
@@ -28,6 +32,9 @@ struct Test {
   test_t *next;
   char *name;
   void (*test_fn)(void *);
+  void *(*start_up)();
+  void (*clean_up)();
+  void *static_data;
 };
 
 typedef struct TestSuite testsuite_t; // forward declaration
@@ -47,8 +54,8 @@ testsuitelist_t suite_list = {NULL, 0};
 int succeeded;
 int tunit_error;
 int tunit_total_errors = 0;
-char * tunit_error_string;
-testsuite_t * t_registerTestSuite(char *name) {
+char *tunit_error_string;
+testsuite_t *t_registerTestSuite(char *name) {
   testsuite_t *new_suite = (testsuite_t *)malloc(sizeof(testsuite_t));
   new_suite->name = name;
   new_suite->first = NULL;
@@ -61,7 +68,14 @@ testsuite_t * t_registerTestSuite(char *name) {
 void pv_t_runSuite(testsuite_t *t) {
   while (t->first != NULL) {
     test_t *test = t->first;
-    test->test_fn(NULL);
+    void *input = test->static_data;
+    if (test->start_up != NULL) {
+      input = test->start_up();
+    }
+    test->test_fn(input);
+    if (test->clean_up != NULL) {
+      test->clean_up();
+    }
     if (tunit_error == 0) {
       succeeded++;
       printf("\t--> " C_GREEN "%s\n" C_NORM, test->name);
@@ -101,16 +115,26 @@ int t_runSuites(int argc, char **argv) {
   return (tunit_total_errors != 0);
 }
 
-void t_addTestToSuite(testsuite_t * suite, char *name, void (*test_fn)(void *)) {
-  //TODO: Find a better way to do this lul
+void t_addStaticDataToTest(test_t * test, void *data) {
+  test->static_data = data;
+}
+
+
+test_t *t_addTestToSuite(testsuite_t *suite, char *name,
+                         void (*test_fn)(void *)) {
+  // TODO: Find a better way to do this lul
   tunit_error_string = malloc(1000);
   test_t *t = (test_t *)malloc(sizeof(test_t));
   t->test_fn = test_fn;
   t->next = suite->first;
   t->name = name;
+  t->start_up = NULL;
+  t->clean_up = NULL;
+  t->static_data = NULL;
   suite->first = t;
-  suite->length ++;
+  suite->length++;
   free(tunit_error_string);
+  return t;
 }
 
 #endif
