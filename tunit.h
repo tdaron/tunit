@@ -5,14 +5,22 @@
 void t_initTestSuite(char *name);
 void t_addTestToSuite(char *name, void (*test_fn)(void *));
 int t_runSuites(int argc, char **argv);
+#define C_NORM "\033[0m"
+#define C_RED "\033[0;31m"
+#define C_GREEN "\033[0;32m"
+#define C_YELLOW "\033[0;33m"
+#define C_BLUE "\033[0;34m"
+#define C_MAGENTA "\033[0;35m"
+#define C_CYAN "\033[0;36m"
+
 #define t_assert_int(a, op, b)                                                 \
   if (!((a)op(b))) {                                                           \
     tunit_error = 1;                                                           \
-    printf("ERROR> %s:%d - assertion failed %d %s %d\n", __FILE__, __LINE__,   \
-           a, #op, b);                                                         \
+    sprintf(tunit_error_string,C_RED "ERROR> %s:%d - assertion failed %d %s %d\n" C_NORM,          \
+           __FILE__, __LINE__, a, #op, b);                                     \
   }
+
 #endif
-#define TUNIT_IMPLEMENTATION
 #ifdef TUNIT_IMPLEMENTATION
 typedef struct Test test_t; // forward declaration
 struct Test {
@@ -38,6 +46,7 @@ testsuitelist_t suite_list = {NULL, 0};
 int succeeded;
 int tunit_error;
 int tunit_total_errors = 0;
+char * tunit_error_string;
 void t_initTestSuite(char *name) {
   testsuite_t *new_suite = (testsuite_t *)malloc(sizeof(testsuite_t));
   new_suite->name = name;
@@ -50,17 +59,20 @@ void t_initTestSuite(char *name) {
 void pv_t_runSuite(testsuite_t *t) {
   while (t->first != NULL) {
     test_t *test = t->first;
-    printf("\t--> %s\n", test->name);
     test->test_fn(NULL);
     if (tunit_error == 0) {
       succeeded++;
+      printf("\t--> " C_GREEN "%s\n" C_NORM, test->name);
     } else {
       tunit_total_errors = 1;
+      printf("\t--> " C_RED "%s\n" C_NORM, test->name);
+      printf("%s", tunit_error_string);
     }
     tunit_error = 0;
     t->first = test->next;
     free(test);
   }
+  printf("\n");
 }
 
 int t_runSuites(int argc, char **argv) {
@@ -69,9 +81,15 @@ int t_runSuites(int argc, char **argv) {
     if (suite->length == 0) {
       printf("Skipping %s because not tests in here\n", suite->name);
     } else {
+      printf("\n---------------\n\n");
       printf("Running %s\n", suite->name);
       pv_t_runSuite(suite);
-      printf("Succeeded %d/%d\n", succeeded, suite->length);
+      printf("Succeeded " C_GREEN "%d/%d" C_NORM, succeeded, suite->length);
+      if (succeeded != suite->length) {
+        printf(" - Failed" C_RED " %d/%d" C_NORM, suite->length - succeeded,
+               suite->length);
+      }
+      printf("\n");
     }
     testsuite_t *next = suite->next;
     succeeded = 0;
@@ -82,12 +100,14 @@ int t_runSuites(int argc, char **argv) {
 }
 
 void t_addTestToSuite(char *name, void (*test_fn)(void *)) {
+  tunit_error_string = malloc(1000);
   test_t *t = (test_t *)malloc(sizeof(test_t));
   t->test_fn = test_fn;
   t->next = suite_list.first->first;
   t->name = name;
   suite_list.first->first = t;
   suite_list.first->length++;
+  free(tunit_error_string);
 }
 
 #endif
