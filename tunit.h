@@ -26,10 +26,9 @@ int t_runSuites(int argc, char **argv);
       free(tunit_error_string);                                                \
       tunit_error_string = malloc(length + 1);                                 \
       tunit_error_string_length = length;                                      \
-      int length =                                                             \
-          snprintf(tunit_error_string, tunit_error_string_length,              \
-                   C_RED "ERROR> %s:%d - assertion failed %d %s %d\n" C_NORM,  \
-                   __FILE__, __LINE__, a, #op, b);                             \
+      snprintf(tunit_error_string, tunit_error_string_length,                  \
+               C_RED "ERROR> %s:%d - assertion failed %d %s %d\n" C_NORM,      \
+               __FILE__, __LINE__, a, #op, b);                                 \
     }                                                                          \
   }
 
@@ -112,7 +111,8 @@ int t_runSuites(int argc, char **argv) {
       printf("\n---------------\n\n");
       printf("Running %s\n", suite->name);
       pv_t_runSuite(suite);
-      printf("Succeeded " C_GREEN "%d/%d" C_NORM, succeeded, suite->length);
+      printf(C_NORM "Succeeded " C_GREEN "%d/%d" C_NORM, succeeded,
+             suite->length);
       if (succeeded != suite->length) {
         printf(" - Failed" C_RED " %d/%d" C_NORM, suite->length - succeeded,
                suite->length);
