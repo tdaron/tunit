@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #ifndef TUNIT_H
 #define TUNIT_H 42
-void t_beginTestSuite(char *name);
-void t_addTestToSuite(char *name, void (*test_fn)(void *));
+typedef struct TestSuite testsuite_t;
+testsuite_t* t_createTestSuite(char *name);
+void t_addTestToSuite(testsuite_t * suite,char *name, void (*test_fn)(void *));
 int t_runSuites(int argc, char **argv);
 #define C_NORM "\033[0m"
 #define C_RED "\033[0;31m"
@@ -47,13 +48,14 @@ int succeeded;
 int tunit_error;
 int tunit_total_errors = 0;
 char * tunit_error_string;
-void t_beginTestSuite(char *name) {
+testsuite_t * t_createTestSuite(char *name) {
   testsuite_t *new_suite = (testsuite_t *)malloc(sizeof(testsuite_t));
   new_suite->name = name;
   new_suite->first = NULL;
   new_suite->next = suite_list.first;
   suite_list.first = new_suite;
   suite_list.length++;
+  return suite_list.first;
 }
 
 void pv_t_runSuite(testsuite_t *t) {
@@ -99,15 +101,15 @@ int t_runSuites(int argc, char **argv) {
   return (tunit_total_errors != 0);
 }
 
-void t_addTestToSuite(char *name, void (*test_fn)(void *)) {
+void t_addTestToSuite(testsuite_t * suite, char *name, void (*test_fn)(void *)) {
   //TODO: Find a better way to do this lul
   tunit_error_string = malloc(1000);
   test_t *t = (test_t *)malloc(sizeof(test_t));
   t->test_fn = test_fn;
-  t->next = suite_list.first->first;
+  t->next = suite->first;
   t->name = name;
-  suite_list.first->first = t;
-  suite_list.first->length++;
+  suite->first = t;
+  suite->length ++;
   free(tunit_error_string);
 }
 
