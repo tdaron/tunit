@@ -15,20 +15,21 @@ int t_runSuites(int argc, char **argv);
 #define C_RED "\033[0;31m"
 #define C_GREEN "\033[0;32m"
 
+#define t_errf(a, op, b)                                                       \
+  snprintf(tunit_error_string, tunit_error_string_length,                      \
+           C_RED "FAIL> %s:%d - assertion failed %d %s %d\n" C_NORM " ",   \
+           __FILE__, __LINE__, a, #op, b);
+
 #define t_assert_int(a, op, b)                                                 \
   if (!((a)op(b))) {                                                           \
     tunit_error = 1;                                                           \
-    int length =                                                               \
-        snprintf(tunit_error_string, tunit_error_string_length,                \
-                 C_RED "ERROR> %s:%d - assertion failed %d %s %d\n" C_NORM,    \
-                 __FILE__, __LINE__, a, #op, b);                               \
-    if (length >= tunit_error_string_length) {                                 \
+    int length = t_errf(a, op, b);                                             \
+    /* in this case we must allocate more memory so store error message*/      \
+    if (length > tunit_error_string_length) {                                  \
       free(tunit_error_string);                                                \
       tunit_error_string = malloc(length + 1);                                 \
       tunit_error_string_length = length;                                      \
-      snprintf(tunit_error_string, tunit_error_string_length,                  \
-               C_RED "ERROR> %s:%d - assertion failed %d %s %d\n" C_NORM,      \
-               __FILE__, __LINE__, a, #op, b);                                 \
+      t_errf(a, op, b);                                                        \
     }                                                                          \
   }
 
@@ -111,8 +112,7 @@ int t_runSuites(int argc, char **argv) {
       printf("\n---------------\n\n");
       printf("Running %s\n", suite->name);
       pv_t_runSuite(suite);
-      printf(C_NORM "Succeeded " C_GREEN "%d/%d" C_NORM, succeeded,
-             suite->length);
+      printf("Succeeded " C_GREEN "%d/%d" C_NORM, succeeded, suite->length);
       if (succeeded != suite->length) {
         printf(" - Failed" C_RED " %d/%d" C_NORM, suite->length - succeeded,
                suite->length);
