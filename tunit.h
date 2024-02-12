@@ -4,6 +4,11 @@
 #define TUNIT_H 42
 typedef struct TestSuite testsuite_t;
 typedef struct Test test_t;
+/*
+Definitions of available methods.
+
+*/
+
 testsuite_t *t_registerTestSuite(char *name);
 test_t *t_addTestToSuite(testsuite_t *suite, char *name,
                          void (*test_fn)(void *));
@@ -11,6 +16,11 @@ void t_addStaticDataToTest(test_t *test, void *data);
 void t_addStartUpToTest(test_t *test, void (*d)(void *));
 void t_addCleanUpToTest(test_t *test, void (*d)(void *));
 int t_runSuites(int argc, char **argv);
+
+/*
+Definitions of macros and constants
+
+*/
 #define C_NORM "\033[0m"
 #define C_RED "\033[0;31m"
 #define C_GREEN "\033[0;32m"
@@ -35,7 +45,12 @@ int t_runSuites(int argc, char **argv);
 #define t_assert_false(a) t_assert_int(a, ==, 0)
 #define t_assert_true(a) t_assert_int(a, ==, 1)
 #endif
+//TODO: Remove this define. Currently useful for IDE.
 #define TUNIT_IMPLEMENTATION
+/*
+Implementation of methods.
+
+*/
 #ifdef TUNIT_IMPLEMENTATION
 
 // Global variables
