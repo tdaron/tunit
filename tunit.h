@@ -106,10 +106,10 @@ void pv_t_runSuite(testsuite_t *t) {
     }
     if (tunit_error == 0) {
       succeeded++;
-      printf("\t--> " C_GREEN "%s\n" C_NORM, test->name);
+      printf("\t-> " C_GREEN "%s\n" C_NORM, test->name);
     } else {
       tunit_total_errors = 1;
-      printf("\t--> " C_RED "%s\n" C_NORM, test->name);
+      printf("\t-> " C_RED "%s\n" C_NORM, test->name);
       printf("%s", tunit_error_string);
     }
     tunit_error = 0;
