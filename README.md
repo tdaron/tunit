@@ -1,6 +1,7 @@
 # TUNIT: A simple and lightweight testing framework in C
 
-![hey](https://github.com/Kaporos/tunit/assets/34960023/b2514c49-20c7-4e2b-bd39-fd5b9a0e64b5)
+![hey](https://github.com/Kaporos/tunit/assets/34960023/e7096d7d-b830-495d-899a-bbeb4c0639b2)
+
 
 
 ## Usage
