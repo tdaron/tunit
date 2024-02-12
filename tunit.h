@@ -8,8 +8,8 @@ testsuite_t *t_registerTestSuite(char *name);
 test_t *t_addTestToSuite(testsuite_t *suite, char *name,
                          void (*test_fn)(void *));
 void t_addStaticDataToTest(test_t *test, void *data);
-void t_addStartUpToTest(test_t *test, void (*d)(void*));
-void t_addCleanUpToTest(test_t *test, void (*d)(void*));
+void t_addStartUpToTest(test_t *test, void (*d)(void *));
+void t_addCleanUpToTest(test_t *test, void (*d)(void *));
 int t_runSuites(int argc, char **argv);
 #define C_NORM "\033[0m"
 #define C_RED "\033[0;31m"
@@ -18,21 +18,38 @@ int t_runSuites(int argc, char **argv);
 #define t_assert_int(a, op, b)                                                 \
   if (!((a)op(b))) {                                                           \
     tunit_error = 1;                                                           \
-    sprintf(tunit_error_string,                                                \
-            C_RED "ERROR> %s:%d - assertion failed %d %s %d\n" C_NORM,         \
-            __FILE__, __LINE__, a, #op, b);                                    \
+    int length =                                                               \
+        snprintf(tunit_error_string, tunit_error_string_length,                \
+                 C_RED "ERROR> %s:%d - assertion failed %d %s %d\n" C_NORM,    \
+                 __FILE__, __LINE__, a, #op, b);                               \
+    if (length >= tunit_error_string_length) {                                 \
+      free(tunit_error_string);                                                \
+      tunit_error_string = malloc(length + 1);                                 \
+      tunit_error_string_length = length;                                      \
+      int length =                                                             \
+          snprintf(tunit_error_string, tunit_error_string_length,              \
+                   C_RED "ERROR> %s:%d - assertion failed %d %s %d\n" C_NORM,  \
+                   __FILE__, __LINE__, a, #op, b);                             \
+    }                                                                          \
   }
 
 #endif
 #define TUNIT_IMPLEMENTATION
 #ifdef TUNIT_IMPLEMENTATION
-typedef struct Test test_t; // forward declaration
+
+// Global variables
+int succeeded;
+int tunit_error;
+int tunit_total_errors = 0;
+char *tunit_error_string = NULL;
+unsigned long tunit_error_string_length = 0; // usefull to not allocate memory.
+typedef struct Test test_t;                  // forward declaration
 struct Test {
   test_t *next;
   char *name;
   void (*test_fn)(void *);
   void (*start_up)(void *);
-  void (*clean_up)(void*);
+  void (*clean_up)(void *);
   void *static_data;
 };
 
@@ -50,10 +67,6 @@ typedef struct TestSuiteList {
 } testsuitelist_t;
 
 testsuitelist_t suite_list = {NULL, 0};
-int succeeded;
-int tunit_error;
-int tunit_total_errors = 0;
-char *tunit_error_string;
 testsuite_t *t_registerTestSuite(char *name) {
   testsuite_t *new_suite = (testsuite_t *)malloc(sizeof(testsuite_t));
   new_suite->name = name;
@@ -111,18 +124,18 @@ int t_runSuites(int argc, char **argv) {
     free(suite);
     suite_list.first = next;
   }
+  if (tunit_error_string != NULL) {
+    free(tunit_error_string);
+  }
   return (tunit_total_errors != 0);
 }
 
-void t_addStaticDataToTest(test_t * test, void *data) {
+void t_addStaticDataToTest(test_t *test, void *data) {
   test->static_data = data;
 }
 
-
 test_t *t_addTestToSuite(testsuite_t *suite, char *name,
                          void (*test_fn)(void *)) {
-  // TODO: Find a better way to do this lul
-  tunit_error_string = malloc(1000);
   test_t *t = (test_t *)malloc(sizeof(test_t));
   t->test_fn = test_fn;
   t->next = suite->first;
@@ -135,10 +148,10 @@ test_t *t_addTestToSuite(testsuite_t *suite, char *name,
   free(tunit_error_string);
   return t;
 }
-void t_addStartUpToTest(test_t *test, void (*startup)(void*)){
+void t_addStartUpToTest(test_t *test, void (*startup)(void *)) {
   test->start_up = startup;
 }
-void t_addCleanUpToTest(test_t *test, void (*cleanup)(void*)) {
+void t_addCleanUpToTest(test_t *test, void (*cleanup)(void *)) {
   test->clean_up = cleanup;
 }
 
