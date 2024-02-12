@@ -1,7 +1,5 @@
 #define TUNIT_IMPLEMENTATION
 #include "tunit.h"
-#include <assert.h>
-#include <stdio.h>
 
 void greatTest()
 {
