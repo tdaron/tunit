@@ -3,7 +3,7 @@
 #ifndef TUNIT_H
 #define TUNIT_H 42
 typedef struct TestSuite testsuite_t;
-testsuite_t* t_createTestSuite(char *name);
+testsuite_t* t_registerTestSuite(char *name);
 void t_addTestToSuite(testsuite_t * suite,char *name, void (*test_fn)(void *));
 int t_runSuites(int argc, char **argv);
 #define C_NORM "\033[0m"
@@ -48,7 +48,7 @@ int succeeded;
 int tunit_error;
 int tunit_total_errors = 0;
 char * tunit_error_string;
-testsuite_t * t_createTestSuite(char *name) {
+testsuite_t * t_registerTestSuite(char *name) {
   testsuite_t *new_suite = (testsuite_t *)malloc(sizeof(testsuite_t));
   new_suite->name = name;
   new_suite->first = NULL;

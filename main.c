@@ -29,15 +29,15 @@ void test5()
 
 int main(int argc, char** argv)
 {
-    testsuite_t* sums = t_createTestSuite("sums");
+    testsuite_t* sums = t_registerTestSuite("sums");
     t_addTestToSuite(sums, "basic-sum", test4);
     t_addTestToSuite(sums, "basic-sum-reversed", test5);
 
-    testsuite_t* dumb = t_createTestSuite("dumb");
+    testsuite_t* dumb = t_registerTestSuite("dumb");
     t_addTestToSuite(dumb, "great", greatTest);
     t_addTestToSuite(dumb, "test3", test3);
 
-    t_createTestSuite("empty");
+    t_registerTestSuite("empty");
 
     return t_runSuites(argc, argv);
 }
