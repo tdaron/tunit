@@ -1,4 +1,14 @@
-# TUNIT: A simple and lightweight testing framework in C
+# TUNIT
+
+Tunit is a really simple and lightweight testing library written in C.
+It is contained in only *one* file, `tunit.h`
+
+To use it, just add `tunit.h` in your project directory and put this in your main.c:
+
+```c
+#define TUNIT_IMPLEMENTATION
+#include "tunit.h"
+```
 
 ![hey](https://github.com/Kaporos/tunit/assets/34960023/20ba9906-fdc2-4142-b180-a0634152154e)
 
