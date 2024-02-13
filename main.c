@@ -2,6 +2,7 @@
 #define TUNIT_IMPLEMENTATION
 #include "tunit.h"
 
+/* Basics */
 void greatTest()
 {
     t_assert_int(5, ==, 4);
@@ -30,6 +31,7 @@ void test5()
     t_assert_int(4, ==, sum(1, 3));
 }
 
+/* More advanced tests with "complex" data-structures*/
 typedef struct Person {
     int age;
 } person_t;
