@@ -30,8 +30,8 @@ Definitions of macros and constants
 
 #define t_errf(a, op, b)                                                       \
   fprintf(stderr,                                                              \
-          C_RED "FAIL> %s:%d - assertion failed %d %s %d" C_NORM "\n",        \
-          __FILE__, __LINE__, a, #op, b);
+          C_RED "FAIL> %s(%s):%d - assertion failed %d %s %d" C_NORM "\n",        \
+          __FILE__, __func__,  __LINE__, a, #op, b);
 
 #define t_assert_int(a, op, b)                                                 \
   if (!((a)op(b))) {                                                           \
@@ -133,22 +133,25 @@ int pv_t_runTest(test_t *test) {
   }
   close(fileno(new_stdout));
   close(fileno(new_stderr));
+  return error ? 1 : 0;
 }
 
 void pv_t_runSuite(testsuite_t *suite) {
   printf("\n---------------\n\n");
   printf("Running %s\n", suite->name);
+  size_t failed = 0;
   while (suite->first != NULL) {
     test_t *test = suite->first;
     suite->first = test->next;
-    pv_t_runTest(test);
+    int res = pv_t_runTest(test);
+    failed += res; //1 if error and 0 if not.
     free(test);
   }
-  printf("Succeeded " C_GREEN "%d/%d" C_NORM, suite->length, suite->length);
-  // if (succeeded != suite->length) {
-  //   printf(" - Failed" C_RED " %d/%d" C_NORM, suite->length - succeeded,
-  //          suite->length);
-  // }
+  printf("\nSucceeded " C_GREEN "%ld/%ld" C_NORM, suite->length-failed, suite->length);
+  if (failed > 0) {
+    printf(" - Failed" C_RED " %ld/%ld" C_NORM, failed,
+           suite->length);
+  }
   printf("\n");
 }
 
