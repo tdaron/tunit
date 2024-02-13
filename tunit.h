@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #ifndef TUNIT_H
 #define TUNIT_H 42
 typedef struct TestSuite testsuite_t;
@@ -26,26 +29,18 @@ Definitions of macros and constants
 #define C_GREEN "\033[0;32m"
 
 #define t_errf(a, op, b)                                                       \
-  snprintf(tunit_error_string, tunit_error_string_length,                      \
-           C_RED "FAIL> %s:%d - assertion failed %d %s %d\n" C_NORM " ",   \
-           __FILE__, __LINE__, a, #op, b);
+  fprintf(stderr,                                                              \
+          C_RED "FAIL> %s:%d - assertion failed %d %s %d" C_NORM "\n",        \
+          __FILE__, __LINE__, a, #op, b);
 
 #define t_assert_int(a, op, b)                                                 \
   if (!((a)op(b))) {                                                           \
-    tunit_error = 1;                                                           \
-    int length = t_errf(a, op, b);                                             \
-    /* in this case we must allocate more memory so store error message*/      \
-    if (length > tunit_error_string_length) {                                  \
-      free(tunit_error_string);                                                \
-      tunit_error_string = malloc(length + 1);                                 \
-      tunit_error_string_length = length;                                      \
-      t_errf(a, op, b);                                                        \
-    }                                                                          \
+    t_errf(a, op, b);                                                          \
   }
 #define t_assert_false(a) t_assert_int(a, ==, 0)
 #define t_assert_true(a) t_assert_int(a, ==, 1)
 #endif
-//TODO: Remove this define. Currently useful for IDE.
+// TODO: Remove this define. Currently useful for IDE.
 #define TUNIT_IMPLEMENTATION
 /*
 Implementation of methods.
@@ -54,12 +49,7 @@ Implementation of methods.
 #ifdef TUNIT_IMPLEMENTATION
 
 // Global variables
-int succeeded;
-int tunit_error;
-int tunit_total_errors = 0;
-char *tunit_error_string = NULL;
-unsigned long tunit_error_string_length = 0; // usefull to not allocate memory.
-typedef struct Test test_t;                  // forward declaration
+typedef struct Test test_t; // forward declaration
 struct Test {
   test_t *next;
   char *name;
@@ -93,9 +83,25 @@ testsuite_t *t_registerTestSuite(char *name) {
   return suite_list.first;
 }
 
-void pv_t_runSuite(testsuite_t *t) {
-  while (t->first != NULL) {
-    test_t *test = t->first;
+
+char * getContent(FILE * file, int length) {
+    rewind(file);
+    char * output = (char*)malloc(length+10); //+10 is a margin of 'safety'
+    fgets(output, length+10, file);
+    return output;
+}
+
+int pv_t_runTest(test_t *test) {
+
+  FILE *new_stderr = tmpfile();
+  FILE *new_stdout = tmpfile();
+  pid_t pid = fork();
+
+  // here we are inside the fork
+  if (pid == 0) {
+    dup2(fileno(new_stderr), STDERR_FILENO);
+    dup2(fileno(new_stdout), STDOUT_FILENO);
+
     void *input = test->static_data;
     if (test->start_up != NULL) {
       test->start_up(input);
@@ -104,18 +110,45 @@ void pv_t_runSuite(testsuite_t *t) {
     if (test->clean_up != NULL) {
       test->clean_up(input);
     }
-    if (tunit_error == 0) {
-      succeeded++;
-      printf("\t-> " C_GREEN "%s\n" C_NORM, test->name);
-    } else {
-      tunit_total_errors = 1;
-      printf("\t-> " C_RED "%s\n" C_NORM, test->name);
-      printf("%s", tunit_error_string);
-    }
-    tunit_error = 0;
-    t->first = test->next;
+    exit(0);
+  }
+  int status = 0;
+  waitpid(pid, &status, 0);
+  long int stderr_length = ftell(new_stderr);
+  char * error_output = NULL;
+  char * output = NULL;
+  int error = status != 0 || stderr_length > 0;
+  if (error) {
+    int stdout_length = ftell(new_stdout);
+    error_output = getContent(new_stderr, stderr_length);
+    output = getContent(new_stdout, stdout_length);
+  }
+  char * color = error ? C_RED : C_GREEN;
+  printf("\t-> %s%s\n" C_NORM, color, test->name);
+  if (output != NULL) {
+    printf("%s", output);
+  }
+  if (error_output != NULL) {
+    printf("%s", error_output);
+  }
+  close(fileno(new_stdout));
+  close(fileno(new_stderr));
+}
+
+void pv_t_runSuite(testsuite_t *suite) {
+  printf("\n---------------\n\n");
+  printf("Running %s\n", suite->name);
+  while (suite->first != NULL) {
+    test_t *test = suite->first;
+    suite->first = test->next;
+    pv_t_runTest(test);
     free(test);
   }
+  printf("Succeeded " C_GREEN "%d/%d" C_NORM, suite->length, suite->length);
+  // if (succeeded != suite->length) {
+  //   printf(" - Failed" C_RED " %d/%d" C_NORM, suite->length - succeeded,
+  //          suite->length);
+  // }
   printf("\n");
 }
 
@@ -125,25 +158,12 @@ int t_runSuites(int argc, char **argv) {
     if (suite->length == 0) {
       printf("Skipping %s because not tests in here\n", suite->name);
     } else {
-      printf("\n---------------\n\n");
-      printf("Running %s\n", suite->name);
       pv_t_runSuite(suite);
-      printf("Succeeded " C_GREEN "%d/%d" C_NORM, succeeded, suite->length);
-      if (succeeded != suite->length) {
-        printf(" - Failed" C_RED " %d/%d" C_NORM, suite->length - succeeded,
-               suite->length);
-      }
-      printf("\n");
     }
     testsuite_t *next = suite->next;
-    succeeded = 0;
     free(suite);
     suite_list.first = next;
   }
-  if (tunit_error_string != NULL) {
-    free(tunit_error_string);
-  }
-  return (tunit_total_errors != 0);
 }
 
 void t_addStaticDataToTest(test_t *test, void *data) {
@@ -161,7 +181,6 @@ test_t *t_addTestToSuite(testsuite_t *suite, char *name,
   t->static_data = NULL;
   suite->first = t;
   suite->length++;
-  free(tunit_error_string);
   return t;
 }
 void t_addStartUpToTest(test_t *test, void (*startup)(void *)) {

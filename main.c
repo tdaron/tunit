@@ -1,3 +1,4 @@
+#include <assert.h>
 #define TUNIT_IMPLEMENTATION
 #include "tunit.h"
 
@@ -9,8 +10,9 @@ void greatTest()
 void test3()
 {
     t_assert_int(2, ==, 2);
-    t_assert_false(3 == 4);
+    t_assert_false(5 == 4);
     t_assert_true(4 == 4);
+    printf("hello world\n");
 }
 
 int sum(int a, int b)
