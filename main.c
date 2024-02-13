@@ -63,18 +63,25 @@ int main(int argc, char** argv)
     t_addTestToSuite(dumb, "great (should fail)", greatTest);
     t_addTestToSuite(dumb, "test3", test3);
 
+    // One way to assign static data.
     testsuite_t* people = t_registerTestSuite("people");
     person_t theo = { .age = 69 };
     test_t* test6_t = t_addTestToSuite(people, "person age (should fail)", test6);
-    t_addStaticDataToTest(test6_t, (void*)&theo);
+    test6_t->static_data = (void*)&theo;
 
+    // One other way
     person_t vlad = { .age = 18 };
     test_t* test6_t_bis = t_addTestToSuite(people, "person age", test6);
     t_addStaticDataToTest(test6_t_bis, (void*)&vlad);
 
+    // Assign start_up and clean_up
     person_t* to_init = malloc(sizeof(person_t));
     test_t* test6_t_bis_2 = t_addTestToSuite(people, "person age 2", test6);
-    t_addStaticDataToTest(test6_t_bis_2, to_init);
+    test6_t_bis_2->static_data = to_init;
+    test6_t_bis_2->start_up = init_person;
+    test6_t_bis_2->clean_up = clear_person;
+
+    // This can also be assigned using methods (EQUIVALENT)
     t_addStartUpToTest(test6_t_bis_2, init_person);
     t_addCleanUpToTest(test6_t_bis_2, clear_person);
 
