@@ -3,8 +3,8 @@
 Tunit is a really simple and lightweight testing library written in C.
 It is contained in only *one* file, `tunit.h`
 
+![hey](https://github.com/Kaporos/tunit/assets/34960023/0e7e794e-88ad-493c-bdc0-446e5452fd47)
 
-![hey](https://github.com/Kaporos/tunit/assets/34960023/20ba9906-fdc2-4142-b180-a0634152154e)
 
 
 ## Features
