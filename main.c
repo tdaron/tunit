@@ -102,6 +102,8 @@ int main(int argc, char** argv)
     t_addCleanUpToTest(test6_t_bis_2, free_static_data);
 
     testsuite_t* suite = t_registerTestSuite("advanced");
+
+    // This test will be ran 3 times with different input samples
     test_t* t = t_addTestToSuite(suite, "iteratible test", testIterative);
     int** data = malloc(3 * sizeof(int[3]));
     data[0] = (int[]) { 5, 2, 3 };
