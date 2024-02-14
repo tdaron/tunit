@@ -41,6 +41,12 @@ void test5()
     t_assert_int(4, ==, sum(1, 3));
 }
 
+void testIterative(void* data)
+{
+    int* data_i = (int*)data;
+    t_assert_int(data_i[0], ==, sum(data_i[1], data_i[2]));
+}
+
 /* More advanced tests with "complex" data-structures*/
 typedef struct Person {
     int age;
@@ -58,7 +64,7 @@ void init_person(void* data)
     t->age = 18;
 }
 
-void clear_person(void* data)
+void free_static_data(void* data)
 {
     free(data);
 }
@@ -89,12 +95,21 @@ int main(int argc, char** argv)
     test_t* test6_t_bis_2 = t_addTestToSuite(people, "person age 2", test6);
     test6_t_bis_2->static_data = to_init;
     test6_t_bis_2->start_up = init_person;
-    test6_t_bis_2->clean_up = clear_person;
+    test6_t_bis_2->clean_up = free_static_data;
 
     // This can also be assigned using methods (EQUIVALENT)
     t_addStartUpToTest(test6_t_bis_2, init_person);
-    t_addCleanUpToTest(test6_t_bis_2, clear_person);
+    t_addCleanUpToTest(test6_t_bis_2, free_static_data);
 
+    testsuite_t* suite = t_registerTestSuite("advanced");
+    test_t* t = t_addTestToSuite(suite, "iteratible test", testIterative);
+    int** data = malloc(3 * sizeof(int[3]));
+    data[0] = (int[]) { 5, 2, 3 };
+    data[1] = (int[]) { 7, 9, -2 };
+    data[2] = (int[]) { 8, 4, 4 };
+    t->static_data = data;
+    t->data_length = 3;
+    t->clean_up = free_static_data;
     t_registerTestSuite("empty");
 
     return t_runSuites(argc, argv);

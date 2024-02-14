@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -68,28 +69,29 @@ Implementation of methods.
 // Global variables
 typedef struct Test test_t; // forward declaration
 struct Test {
-  test_t *next; //Test are all organized in linked lists.
+  test_t *next; // Test are all organized in linked lists.
   char *name;
   void (*test_fn)(void *);
   void (*start_up)(void *);
   void (*clean_up)(void *);
   void *static_data;
+  int data_length;
 };
 
 typedef struct TestSuite testsuite_t; // forward declaration
 typedef struct TestSuite {
-  testsuite_t *next; //Suits are also organized in linked lists.
+  testsuite_t *next; // Suits are also organized in linked lists.
   test_t *first;
   char *name;
   size_t length;
 } testsuite_t;
 
 typedef struct TestSuiteList {
-  testsuite_t *first; 
+  testsuite_t *first;
   size_t length;
 } testsuitelist_t;
 
-//This variable is global and contains the full list of all suites.
+// This variable is global and contains the full list of all suites.
 testsuitelist_t suite_list = {NULL, 0};
 
 testsuite_t *t_registerTestSuite(char *name) {
@@ -102,8 +104,8 @@ testsuite_t *t_registerTestSuite(char *name) {
   return suite_list.first;
 }
 
-//This method is usefull to read stdout and stderr from child processes
-//used to run tests.
+// This method is usefull to read stdout and stderr from child processes
+// used to run tests.
 static char *getContent(FILE *file, int length) {
   rewind(file);
   char *output = (char *)calloc(length, 1);
@@ -111,40 +113,40 @@ static char *getContent(FILE *file, int length) {
   return output;
 }
 
-static int pv_t_runTest(test_t *test) {
-
-  //Here i am forking current process.
-  //It allows me to replace stdout and stderr of the running test by tmpfiles
+static int pv_t_runTest(test_t *test, void *input, int current_iter) {
+  // when tests are ran with multiple iterations with each one their own input
+  // the input is stored in curr_input
+  // test->static_data contain all the inputs from all iterations
+  // even if there is only one iteration (default behavior) the data will be in curr_input
+  void *curr_input = input;
   FILE *new_stderr = tmpfile();
   FILE *new_stdout = tmpfile();
   pid_t pid = fork();
 
   // here we are inside the fork
   if (pid == 0) {
-    //replacing stderr and stdout by my custom ones
+    // replacing stderr and stdout by my custom ones
     dup2(fileno(new_stderr), STDERR_FILENO);
     dup2(fileno(new_stdout), STDOUT_FILENO);
-
-    //running the test
-    void *input = test->static_data;
-    if (test->start_up != NULL) {
-      test->start_up(input);
+    // running the test
+    if (test->start_up != NULL && current_iter == 0) {
+      test->start_up(test->static_data);
     }
-    test->test_fn(input);
-    if (test->clean_up != NULL) {
-      test->clean_up(input);
+    test->test_fn(curr_input);
+    if (test->clean_up != NULL && current_iter == test->data_length-1) {
+      test->clean_up(test->static_data);
     }
     exit(0);
   }
   int status = 0;
   waitpid(pid, &status, 0);
 
-  //If this length is bigger than 0 it means some errors were written
-  //So test failed
+  // If this length is bigger than 0 it means some errors were written
+  // So test failed
   long int stderr_length = ftell(new_stderr);
-  int error = status != 0 || stderr_length > 0;
+  bool error = status != 0 || stderr_length > 0;
 
-  //Reading content of test's stdout and stderr in case of error
+  // Reading content of test's stdout and stderr in case of error
   char *error_output = NULL;
   char *output = NULL;
   if (error) {
@@ -153,11 +155,16 @@ static int pv_t_runTest(test_t *test) {
     error_output = getContent(new_stderr, stderr_length);
   }
 
-  //printing test name in green or red in case of success/error
+  // printing test name in green or red in case of success/error
   char *color = error ? C_RED : C_GREEN;
-  printf("\t-> %s%s\n" C_NORM, color, test->name);
+  if (current_iter == 0) {
+    printf("\t-> %s%s\n" C_NORM, color, test->name);
+  } 
+  if (test->data_length > 1) {
+    printf("\t\t %s iteration=%d " C_NORM " \n", color, current_iter);
+  }
 
-  //writing stderr and stdout in case of errors
+  // writing stderr and stdout in case of errors
   if (output != NULL) {
     printf("%s", output);
   }
@@ -167,9 +174,16 @@ static int pv_t_runTest(test_t *test) {
 
   close(fileno(new_stdout));
   close(fileno(new_stderr));
-  return error ? 1 : 0;
+  return 0;
 }
 
+static int pv_t_runIterableTest(test_t *test) {
+  int res = 0;
+  for (int i = 0; i < test->data_length; i++) {
+    res += pv_t_runTest(test, ((char **)(test->static_data))[i], i);
+  }
+  return res;
+}
 static void pv_t_runSuite(testsuite_t *suite) {
   printf("\n---------------\n\n");
   printf("Running %s\n", suite->name);
@@ -177,7 +191,13 @@ static void pv_t_runSuite(testsuite_t *suite) {
   while (suite->first != NULL) {
     test_t *test = suite->first;
     suite->first = test->next;
-    int res = pv_t_runTest(test);
+    int res;
+    if (test->data_length > 1) {
+      res = pv_t_runIterableTest(test);
+
+    } else {
+      res = pv_t_runTest(test, test->static_data, 0);
+    }
     failed += res; // 1 if error and 0 if not.
     free(test);
   }
@@ -216,6 +236,7 @@ test_t *t_addTestToSuite(testsuite_t *suite, char *name,
   t->start_up = NULL;
   t->clean_up = NULL;
   t->static_data = NULL;
+  t->data_length = 1;
   suite->first = t;
   suite->length++;
   return t;
