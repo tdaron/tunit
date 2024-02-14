@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -28,17 +29,33 @@ Definitions of macros and constants
 #define C_RED "\033[0;31m"
 #define C_GREEN "\033[0;32m"
 
-#define t_errf(a, op, b)                                                       \
+#define t_errf(a, op, b, fmt)                                                  \
   fprintf(stderr,                                                              \
-          C_RED "FAIL> %s(%s):%d - assertion failed %d %s %d" C_NORM "\n",        \
-          __FILE__, __func__,  __LINE__, a, #op, b);
+          C_RED "FAIL> %s(%s):%d - assertion failed " fmt " %s " fmt "" C_NORM \
+                "\n",                                                          \
+          __FILE__, __func__, __LINE__, a, #op, b);
 
-#define t_assert_op(a, op, b)                                                 \
+#define t_assert_op(a, op, b, fmt)                                             \
   if (!((a)op(b))) {                                                           \
-    t_errf(a, op, b);                                                          \
+    t_errf(a, op, b, fmt);                                                     \
   }
-#define t_assert_false(a) t_assert_op(a, ==, 0)
-#define t_assert_true(a) t_assert_op(a, ==, 1)
+
+#define t_assert_str_eq(a, b)                                                  \
+  if (strcmp(a, b)) {                                                          \
+    t_errf(a, ==, b, "%s");                                                    \
+  }
+
+#define t_assert_str_neq(a, b)                                                 \
+  if (!strcmp(a, b)) {                                                         \
+    t_errf(a, !=, b, "%s");                                                    \
+  }
+
+#define t_assert_int(a, op, b) t_assert_op(a, op, b, "%d")
+#define t_assert_char(a, op, b) t_assert_op(a, op, b, "%c")
+#define t_assert_false(a) t_assert_int(a, ==, 0)
+#define t_assert_double(a, op, b) t_assert_op(a, op, b, "%f")
+#define t_assert_float(a, op, b) t_assert_op(a, op, b, "%f")
+#define t_assert_true(a) t_assert_int(a, ==, 1)
 #endif
 // TODO: Remove this define. Currently useful for IDE.
 #define TUNIT_IMPLEMENTATION
@@ -83,12 +100,11 @@ testsuite_t *t_registerTestSuite(char *name) {
   return suite_list.first;
 }
 
-
-static char * getContent(FILE * file, int length) {
-    rewind(file);
-    char * output = (char*)malloc(length+10); //+10 is a margin of 'safety'
-    fgets(output, length+10, file);
-    return output;
+static char *getContent(FILE *file, int length) {
+  rewind(file);
+  char *output = (char *)calloc(length + 1, 1); //+10 is a margin of 'safety'
+  fgets(output, length + 1, file);
+  return output;
 }
 
 static int pv_t_runTest(test_t *test) {
@@ -115,15 +131,15 @@ static int pv_t_runTest(test_t *test) {
   int status = 0;
   waitpid(pid, &status, 0);
   long int stderr_length = ftell(new_stderr);
-  char * error_output = NULL;
-  char * output = NULL;
+  char *error_output = NULL;
+  char *output = NULL;
   int error = status != 0 || stderr_length > 0;
   if (error) {
     int stdout_length = ftell(new_stdout);
     error_output = getContent(new_stderr, stderr_length);
     output = getContent(new_stdout, stdout_length);
   }
-  char * color = error ? C_RED : C_GREEN;
+  char *color = error ? C_RED : C_GREEN;
   printf("\t-> %s%s\n" C_NORM, color, test->name);
   if (output != NULL) {
     printf("%s", output);
@@ -144,13 +160,13 @@ static void pv_t_runSuite(testsuite_t *suite) {
     test_t *test = suite->first;
     suite->first = test->next;
     int res = pv_t_runTest(test);
-    failed += res; //1 if error and 0 if not.
+    failed += res; // 1 if error and 0 if not.
     free(test);
   }
-  printf("\nSucceeded " C_GREEN "%ld/%ld" C_NORM, suite->length-failed, suite->length);
+  printf("\nSucceeded " C_GREEN "%ld/%ld" C_NORM, suite->length - failed,
+         suite->length);
   if (failed > 0) {
-    printf(" - Failed" C_RED " %ld/%ld" C_NORM, failed,
-           suite->length);
+    printf(" - Failed" C_RED " %ld/%ld" C_NORM, failed, suite->length);
   }
   printf("\n");
 }

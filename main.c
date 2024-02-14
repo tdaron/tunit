@@ -5,14 +5,20 @@
 /* Basics */
 void greatTest()
 {
-    t_assert_op(5, ==, 4);
+    int b = 4.0 == 5.0;
+    t_assert_int(5, ==, 6);
+    t_assert_int(5, ==, 8);
 }
 
 void test3()
 {
-    t_assert_op(2, ==, 2);
+    t_assert_int(2, ==, 2);
     t_assert_false(0);
     t_assert_true(1);
+    t_assert_str_neq("one", "two");
+    t_assert_str_eq("three", "three");
+    t_assert_float(4.0f, ==, 4.0f);
+    t_assert_double(4.0, ==, 4.0f);
     printf("hello world\n");
 }
 
@@ -23,12 +29,12 @@ int sum(int a, int b)
 
 void test4()
 {
-    t_assert_op(4, ==, sum(3, 1));
+    t_assert_int(4, ==, sum(3, 1));
 }
 
 void test5()
 {
-    t_assert_op(4, ==, sum(1, 3));
+    t_assert_int(4, ==, sum(1, 3));
 }
 
 /* More advanced tests with "complex" data-structures*/
@@ -39,7 +45,7 @@ typedef struct Person {
 void test6(void* input)
 {
     person_t* i = input;
-    t_assert_op(i->age, ==, sum(6, 12));
+    t_assert_int(i->age, ==, sum(6, 12));
 }
 
 void init_person(void* data)
