@@ -84,14 +84,14 @@ testsuite_t *t_registerTestSuite(char *name) {
 }
 
 
-char * getContent(FILE * file, int length) {
+static char * getContent(FILE * file, int length) {
     rewind(file);
     char * output = (char*)malloc(length+10); //+10 is a margin of 'safety'
     fgets(output, length+10, file);
     return output;
 }
 
-int pv_t_runTest(test_t *test) {
+static int pv_t_runTest(test_t *test) {
 
   FILE *new_stderr = tmpfile();
   FILE *new_stdout = tmpfile();
@@ -136,7 +136,7 @@ int pv_t_runTest(test_t *test) {
   return error ? 1 : 0;
 }
 
-void pv_t_runSuite(testsuite_t *suite) {
+static void pv_t_runSuite(testsuite_t *suite) {
   printf("\n---------------\n\n");
   printf("Running %s\n", suite->name);
   size_t failed = 0;
