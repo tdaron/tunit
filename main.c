@@ -74,9 +74,9 @@ int main(int argc, char** argv)
 
     // One way to assign static data.
     testsuite_t* people = t_registerTestSuite("people");
-    // person_t theo = { .age = 69 };
-    // test_t* test6_t = t_addTestToSuite(people, "person age (should fail)", test6);
-    // test6_t->static_data = (void*)&theo;
+    person_t theo = { .age = 69 };
+    test_t* test6_t = t_addTestToSuite(people, "person age (should fail)", test6);
+    test6_t->static_data = (void*)&theo;
 
     // One other way
     person_t vlad = { .age = 18 };
