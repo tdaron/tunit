@@ -68,7 +68,7 @@ Implementation of methods.
 // Global variables
 typedef struct Test test_t; // forward declaration
 struct Test {
-  test_t *next;
+  test_t *next; //Test are all organized in linked lists.
   char *name;
   void (*test_fn)(void *);
   void (*start_up)(void *);
@@ -78,18 +78,20 @@ struct Test {
 
 typedef struct TestSuite testsuite_t; // forward declaration
 typedef struct TestSuite {
+  testsuite_t *next; //Suits are also organized in linked lists.
   test_t *first;
   char *name;
   size_t length;
-  testsuite_t *next;
 } testsuite_t;
 
 typedef struct TestSuiteList {
-  testsuite_t *first;
+  testsuite_t *first; 
   size_t length;
 } testsuitelist_t;
 
+//This variable is global and contains the full list of all suites.
 testsuitelist_t suite_list = {NULL, 0};
+
 testsuite_t *t_registerTestSuite(char *name) {
   testsuite_t *new_suite = (testsuite_t *)malloc(sizeof(testsuite_t));
   new_suite->name = name;
@@ -100,6 +102,8 @@ testsuite_t *t_registerTestSuite(char *name) {
   return suite_list.first;
 }
 
+//This method is usefull to read stdout and stderr from child processes
+//used to run tests.
 static char *getContent(FILE *file, int length) {
   rewind(file);
   char *output = (char *)calloc(length, 1);
@@ -109,12 +113,15 @@ static char *getContent(FILE *file, int length) {
 
 static int pv_t_runTest(test_t *test) {
 
+  //Here i am forking current process.
+  //It allows me to replace stdout and stderr of the running test by tmpfiles
   FILE *new_stderr = tmpfile();
   FILE *new_stdout = tmpfile();
   pid_t pid = fork();
 
   // here we are inside the fork
   if (pid == 0) {
+    //replacing stderr and stdout by my custom ones
     dup2(fileno(new_stderr), STDERR_FILENO);
     dup2(fileno(new_stdout), STDOUT_FILENO);
 
@@ -130,23 +137,33 @@ static int pv_t_runTest(test_t *test) {
   }
   int status = 0;
   waitpid(pid, &status, 0);
+
+  //If this length is bigger than 0 it means some errors were written
+  //So test failed
   long int stderr_length = ftell(new_stderr);
+  int error = status != 0 || stderr_length > 0;
+
+  //Reading content of test's stdout and stderr in case of error
   char *error_output = NULL;
   char *output = NULL;
-  int error = status != 0 || stderr_length > 0;
   if (error) {
     int stdout_length = ftell(new_stdout);
     output = getContent(new_stdout, stdout_length);
     error_output = getContent(new_stderr, stderr_length);
   }
+
+  //printing test name in green or red in case of success/error
   char *color = error ? C_RED : C_GREEN;
   printf("\t-> %s%s\n" C_NORM, color, test->name);
+
+  //writing stderr and stdout in case of errors
   if (output != NULL) {
     printf("%s", output);
   }
   if (error_output != NULL) {
     printf("%s", error_output);
   }
+
   close(fileno(new_stdout));
   close(fileno(new_stderr));
   return error ? 1 : 0;
