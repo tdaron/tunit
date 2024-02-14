@@ -102,8 +102,8 @@ testsuite_t *t_registerTestSuite(char *name) {
 
 static char *getContent(FILE *file, int length) {
   rewind(file);
-  char *output = (char *)calloc(length + 1, 1); //+10 is a margin of 'safety'
-  fgets(output, length + 1, file);
+  char *output = (char *)calloc(length, 1);
+  fread(output, 1, length, file);
   return output;
 }
 
@@ -136,8 +136,9 @@ static int pv_t_runTest(test_t *test) {
   int error = status != 0 || stderr_length > 0;
   if (error) {
     int stdout_length = ftell(new_stdout);
-    error_output = getContent(new_stderr, stderr_length);
+    printf("stdout length: %d\n", stdout_length);
     output = getContent(new_stdout, stdout_length);
+    error_output = getContent(new_stderr, stderr_length);
   }
   char *color = error ? C_RED : C_GREEN;
   printf("\t-> %s%s\n" C_NORM, color, test->name);

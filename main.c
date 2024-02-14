@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #define TUNIT_IMPLEMENTATION
 #include "tunit.h"
 
@@ -6,6 +7,8 @@
 void greatTest()
 {
     int b = 4.0 == 5.0;
+    printf("some debug\n");
+    printf("another debug\n");
     t_assert_int(5, ==, 6);
     t_assert_int(5, ==, 8);
 }
@@ -71,9 +74,9 @@ int main(int argc, char** argv)
 
     // One way to assign static data.
     testsuite_t* people = t_registerTestSuite("people");
-    person_t theo = { .age = 69 };
-    test_t* test6_t = t_addTestToSuite(people, "person age (should fail)", test6);
-    test6_t->static_data = (void*)&theo;
+    // person_t theo = { .age = 69 };
+    // test_t* test6_t = t_addTestToSuite(people, "person age (should fail)", test6);
+    // test6_t->static_data = (void*)&theo;
 
     // One other way
     person_t vlad = { .age = 18 };

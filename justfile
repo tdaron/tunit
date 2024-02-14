@@ -1,2 +1,2 @@
 run:
-	gcc main.c && ./a.out
+	gcc -g main.c && ./a.out
