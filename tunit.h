@@ -136,7 +136,6 @@ static int pv_t_runTest(test_t *test) {
   int error = status != 0 || stderr_length > 0;
   if (error) {
     int stdout_length = ftell(new_stdout);
-    printf("stdout length: %d\n", stdout_length);
     output = getContent(new_stdout, stdout_length);
     error_output = getContent(new_stderr, stderr_length);
   }
