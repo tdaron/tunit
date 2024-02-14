@@ -7,7 +7,7 @@
 void greatTest()
 {
     int b = 4.0 == 5.0;
-    printf("some debug\n");
+    printf("some debug inside the test\n");
     printf("another debug\n");
     t_assert_int(5, ==, 6);
     t_assert_int(5, ==, 8);
