@@ -11,8 +11,8 @@ void greatTest()
 void test3()
 {
     t_assert_int(2, ==, 2);
-    t_assert_false(5 == 4);
-    t_assert_true(4 == 4);
+    t_assert_false(0);
+    t_assert_true(1);
     printf("hello world\n");
 }
 
