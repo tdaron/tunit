@@ -33,12 +33,12 @@ Definitions of macros and constants
           C_RED "FAIL> %s(%s):%d - assertion failed %d %s %d" C_NORM "\n",        \
           __FILE__, __func__,  __LINE__, a, #op, b);
 
-#define t_assert_int(a, op, b)                                                 \
+#define t_assert_op(a, op, b)                                                 \
   if (!((a)op(b))) {                                                           \
     t_errf(a, op, b);                                                          \
   }
-#define t_assert_false(a) t_assert_int(a, ==, 0)
-#define t_assert_true(a) t_assert_int(a, ==, 1)
+#define t_assert_false(a) t_assert_op(a, ==, 0)
+#define t_assert_true(a) t_assert_op(a, ==, 1)
 #endif
 // TODO: Remove this define. Currently useful for IDE.
 #define TUNIT_IMPLEMENTATION
