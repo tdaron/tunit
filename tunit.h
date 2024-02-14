@@ -125,6 +125,7 @@ static int pv_t_runTest(test_t *test) {
     dup2(fileno(new_stderr), STDERR_FILENO);
     dup2(fileno(new_stdout), STDOUT_FILENO);
 
+    //running the test
     void *input = test->static_data;
     if (test->start_up != NULL) {
       test->start_up(input);
