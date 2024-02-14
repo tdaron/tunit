@@ -186,7 +186,7 @@ static int pv_t_runTest(test_t *test, void *input, int current_iter) {
 
   close(fileno(new_stdout));
   close(fileno(new_stderr));
-  return 0;
+  return error ? 1 : 0;
 }
 
 static int pv_t_runIterableTest(test_t *test) {
