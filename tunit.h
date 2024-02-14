@@ -82,12 +82,14 @@ typedef struct TestSuite testsuite_t; // forward declaration
 typedef struct TestSuite {
   testsuite_t *next; // Suits are also organized in linked lists.
   test_t *first;
+  test_t *last; // usefull to add test to end of the list
   char *name;
   size_t length;
 } testsuite_t;
 
 typedef struct TestSuiteList {
   testsuite_t *first;
+  testsuite_t * last;
   size_t length;
 } testsuitelist_t;
 
@@ -99,18 +101,17 @@ testsuite_t *t_registerTestSuite(char *name) {
   new_suite->name = name;
   new_suite->first = NULL;
   new_suite->next = NULL;
-  testsuite_t *last = suite_list.first;
-  if (last == NULL) {
-    suite_list.first = new_suite;
-    goto end;
-  }
-  while (last->next != NULL) {
-    last = last->next;
-  }
-  last->next = new_suite;
-
-end:
+  new_suite->last = NULL;
   suite_list.length++;
+
+  // empty list
+  if (suite_list.first == NULL) {
+    suite_list.first = new_suite;
+    suite_list.last = new_suite;
+    return new_suite;
+  }
+  suite_list.last->next = new_suite;
+  suite_list.last = new_suite;
   return new_suite;
 }
 
@@ -248,19 +249,16 @@ test_t *t_addTestToSuite(testsuite_t *suite, char *name,
   t->clean_up = NULL;
   t->static_data = NULL;
   t->data_length = 1;
-
-  test_t *last = suite->first;
-  if (last == NULL) {
-    suite->first = t;
-    goto end;
-  }
-  while (last->next != NULL) {
-    last = last->next;
-  }
-  last->next = t;
-
-end:
   suite->length++;
+
+  // empty list
+  if (suite->first == NULL) {
+    suite->first = t;
+    suite->last = t;
+    return t;
+  }
+  suite->last->next = t;
+  suite->last = t;
   return t;
 }
 void t_addStartUpToTest(test_t *test, void (*startup)(void *)) {
