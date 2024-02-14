@@ -98,10 +98,20 @@ testsuite_t *t_registerTestSuite(char *name) {
   testsuite_t *new_suite = (testsuite_t *)malloc(sizeof(testsuite_t));
   new_suite->name = name;
   new_suite->first = NULL;
-  new_suite->next = suite_list.first;
-  suite_list.first = new_suite;
+  new_suite->next = NULL;
+  testsuite_t *last = suite_list.first;
+  if (last == NULL) {
+    suite_list.first = new_suite;
+    goto end;
+  }
+  while (last->next != NULL) {
+    last = last->next;
+  }
+  last->next = new_suite;
+
+end:
   suite_list.length++;
-  return suite_list.first;
+  return new_suite;
 }
 
 // This method is usefull to read stdout and stderr from child processes
@@ -117,7 +127,8 @@ static int pv_t_runTest(test_t *test, void *input, int current_iter) {
   // when tests are ran with multiple iterations with each one their own input
   // the input is stored in curr_input
   // test->static_data contain all the inputs from all iterations
-  // even if there is only one iteration (default behavior) the data will be in curr_input
+  // even if there is only one iteration (default behavior) the data will be in
+  // curr_input
   void *curr_input = input;
   FILE *new_stderr = tmpfile();
   FILE *new_stdout = tmpfile();
@@ -133,7 +144,7 @@ static int pv_t_runTest(test_t *test, void *input, int current_iter) {
       test->start_up(test->static_data);
     }
     test->test_fn(curr_input);
-    if (test->clean_up != NULL && current_iter == test->data_length-1) {
+    if (test->clean_up != NULL && current_iter == test->data_length - 1) {
       test->clean_up(test->static_data);
     }
     exit(0);
@@ -159,7 +170,7 @@ static int pv_t_runTest(test_t *test, void *input, int current_iter) {
   char *color = error ? C_RED : C_GREEN;
   if (current_iter == 0) {
     printf("\t-> %s%s\n" C_NORM, color, test->name);
-  } 
+  }
   if (test->data_length > 1) {
     printf("\t\t %s iteration=%d " C_NORM " \n", color, current_iter);
   }
@@ -231,13 +242,24 @@ test_t *t_addTestToSuite(testsuite_t *suite, char *name,
                          void (*test_fn)(void *)) {
   test_t *t = (test_t *)malloc(sizeof(test_t));
   t->test_fn = test_fn;
-  t->next = suite->first;
+  t->next = NULL;
   t->name = name;
   t->start_up = NULL;
   t->clean_up = NULL;
   t->static_data = NULL;
   t->data_length = 1;
-  suite->first = t;
+
+  test_t *last = suite->first;
+  if (last == NULL) {
+    suite->first = t;
+    goto end;
+  }
+  while (last->next != NULL) {
+    last = last->next;
+  }
+  last->next = t;
+
+end:
   suite->length++;
   return t;
 }
