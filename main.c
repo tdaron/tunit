@@ -21,7 +21,7 @@ void test3()
     t_assert_str_neq("one", "two");
     t_assert_str_eq("three", "three");
     t_assert_float(4.0f, ==, 4.0f);
-    t_assert_double(4.0, ==, 4.0f);
+    t_assert_double(4.0, ==, 4.0);
     printf("hello world (wont be shown because test3 succeed)\n");
 }
 
