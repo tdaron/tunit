@@ -39,16 +39,19 @@ Definitions of macros and constants
 #define t_assert_op(a, op, b, fmt)                                             \
   if (!((a)op(b))) {                                                           \
     t_errf(a, op, b, fmt);                                                     \
+    return;                                                                    \
   }
 
 #define t_assert_str_eq(a, b)                                                  \
   if (strcmp(a, b)) {                                                          \
     t_errf(a, ==, b, "%s");                                                    \
+    return;                                                                    \
   }
 
 #define t_assert_str_neq(a, b)                                                 \
   if (!strcmp(a, b)) {                                                         \
     t_errf(a, !=, b, "%s");                                                    \
+    return;                                                                    \
   }
 
 #define t_assert_int(a, op, b) t_assert_op(a, op, b, "%d")
@@ -89,7 +92,7 @@ typedef struct TestSuite {
 
 typedef struct TestSuiteList {
   testsuite_t *first;
-  testsuite_t * last;
+  testsuite_t *last;
   size_t length;
 } testsuitelist_t;
 
@@ -221,20 +224,6 @@ static void pv_t_runSuite(testsuite_t *suite) {
   printf("\n");
 }
 
-int t_runSuites(int argc, char **argv) {
-  while (suite_list.first != NULL) {
-    testsuite_t *suite = suite_list.first;
-    if (suite->length == 0) {
-      printf("Skipping %s because not tests in here\n", suite->name);
-    } else {
-      pv_t_runSuite(suite);
-    }
-    testsuite_t *next = suite->next;
-    free(suite);
-    suite_list.first = next;
-  }
-}
-
 void t_addStaticDataToTest(test_t *test, void *data) {
   test->static_data = data;
 }
@@ -268,4 +257,17 @@ void t_addCleanUpToTest(test_t *test, void (*cleanup)(void *)) {
   test->clean_up = cleanup;
 }
 
+int t_runSuites(int argc, char **argv) {
+  while (suite_list.first != NULL) {
+    testsuite_t *suite = suite_list.first;
+    if (suite->length == 0) {
+      printf("Skipping %s because not tests in here\n", suite->name);
+    } else {
+      pv_t_runSuite(suite);
+    }
+    testsuite_t *next = suite->next;
+    free(suite);
+    suite_list.first = next;
+  }
+}
 #endif
