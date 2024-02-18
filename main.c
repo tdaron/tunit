@@ -10,8 +10,9 @@ void greatTest()
     printf("some debug inside the test\n");
     printf("another debug\n");
     // theses assert are MEANT to fail.
+    t_assert_int(8, ==, 8);
     t_assert_int(5, ==, 6);
-    t_assert_int(5, ==, 8);
+    t_assert_int(10, ==, 10);
 }
 
 void test3()
