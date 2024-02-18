@@ -145,10 +145,12 @@ static int pv_t_runTest(test_t *test, void *input, int current_iter) {
     dup2(fileno(new_stdout), STDOUT_FILENO);
     // running the test
     if (test->start_up != NULL && current_iter == 0) {
+      //we only run start_up for the first iteration
       test->start_up(test->static_data);
     }
     test->test_fn(curr_input);
     if (test->clean_up != NULL && current_iter == test->data_length - 1) {
+      //we only run clean_up for the end iteration
       test->clean_up(test->static_data);
     }
     exit(0);
