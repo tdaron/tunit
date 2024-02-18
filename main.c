@@ -113,6 +113,8 @@ int main(int argc, char** argv)
     t->static_data = data;
     t->data_length = 3;
     t->clean_up = free_static_data;
+
+    // This test suite does not contain any test.
     t_registerTestSuite("empty");
 
     return t_runSuites(argc, argv);
