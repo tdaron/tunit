@@ -74,6 +74,7 @@ Definitions of macros and constants
   }
 
 #define t_assert_int(a, op, b) t_assert_op(a, op, b, "%d")
+#define t_assert_int64(a, op, b) t_assert_op(a, op, b, "%ld")
 #define t_assert_char(a, op, b) t_assert_op(a, op, b, "%c")
 #define t_assert_false(a) t_assert_int(a, ==, 0)
 #define t_assert_double(a, op, b) t_assert_op(a, op, b, "%f")
