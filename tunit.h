@@ -25,7 +25,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #ifndef TUNIT_H
-#define TUNIT_H 0
+#define TUNIT_H 42
 typedef struct TestSuite testsuite_t;
 typedef struct Test test_t;
 /*
