@@ -25,7 +25,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #ifndef TUNIT_H
-#define TUNIT_H 42
+#define TUNIT_H 0
 typedef struct TestSuite testsuite_t;
 typedef struct Test test_t;
 /*
@@ -74,12 +74,14 @@ Definitions of macros and constants
   }
 
 #define t_assert_int(a, op, b) t_assert_op(a, op, b, "%d")
-#define t_assert_int64(a, op, b) t_assert_op(a, op, b, "%ld")
+#define t_assert_long_int(a, op, b) t_assert_op(a, op, b, "%ld")
 #define t_assert_char(a, op, b) t_assert_op(a, op, b, "%c")
 #define t_assert_false(a) t_assert_int(a, ==, 0)
 #define t_assert_double(a, op, b) t_assert_op(a, op, b, "%f")
 #define t_assert_float(a, op, b) t_assert_op(a, op, b, "%f")
+#define t_assert_void(a, op, b) t_assert_op(a, op, b, "%p")
 #define t_assert_true(a) t_assert_int(a, ==, 1)
+
 #endif
 // TODO: Remove this define. Currently useful for IDE.
 #define TUNIT_IMPLEMENTATION
