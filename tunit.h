@@ -84,8 +84,6 @@ Definitions of macros and constants
 #define t_assert_true(a) t_assert_int(a, ==, 1)
 
 #endif
-// TODO: Remove this define. Currently useful for IDE.
-#define TUNIT_IMPLEMENTATION
 /*
 Implementation of methods.
 
